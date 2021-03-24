@@ -1,0 +1,11 @@
+LOSS_FUNC = 'cosface'
+OPTIMIZER = 'adam'
+LEARNING_RATE = 0.1
+MIN_LEARNING_RATE = 0.00001
+BATCH_SIZE = 16
+NUM_FEATURES = 64
+SCHEDULER = 'CosineAnnealing'
+MOMENTUM = 0.5
+TRAINING_FOLDER = './data/embedding_encoder/training/'
+EPOCHS = 100
+CHECKPOINT_FOLDER = './embedding_encoder/checkpoints/'
