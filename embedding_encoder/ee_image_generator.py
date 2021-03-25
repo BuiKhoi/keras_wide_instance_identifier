@@ -13,6 +13,7 @@ class EmbeddingDataGenerator(Sequence):
             target_size=(224, 224),
             batch_size=batch_size
         )
+        self.num_classes = self.generator.num_classes
 
     def on_epoch_end(self):
         self.generator.on_epoch_end()
