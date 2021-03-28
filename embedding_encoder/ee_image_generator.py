@@ -7,7 +7,12 @@ class EmbeddingDataGenerator(Sequence):
         self.image_directory = image_directory
         self.batch_size = batch_size
         self.shuffle = shuffle
-        self.generator = ImageDataGenerator(rotation_range=10, shear_range=0.3, zoom_range=0.3)
+        self.generator = ImageDataGenerator(
+            rotation_range=10,
+            shear_range=0.3,
+            zoom_range=0.3,
+            rescale=1.0/255.0
+        )
         self.generator = self.generator.flow_from_directory(
             image_directory,
             target_size=(224, 224),

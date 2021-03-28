@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Dense, Conv2D, BatchNormalization, Activation
-from tensorflow.keras.layers import Input, MaxPooling2D, Dropout, Flatten, Lambda
+from tensorflow.keras.layers import Input, MaxPooling2D, Dropout, Flatten, concatenate
 from tensorflow.keras import regularizers
 from tensorflow.keras.applications.resnet50 import ResNet50
 from embedding_encoder.docs.keras_arcface.metrics import *
@@ -63,7 +63,7 @@ def construct_model(classes, num_features):
 
 
 def triplet_model(num_features):
-    model = tf.keras.Sequential([
+    base_model = tf.keras.Sequential([
         ResNet50(include_top=False, pooling='max', input_shape=(224, 224, 3), weights=None),
         tf.keras.layers.Dense(256, activation='relu'),
         Dropout(0.2),
@@ -72,4 +72,14 @@ def triplet_model(num_features):
         tf.keras.layers.Dense(num_features, activation=None),  # No activation on final dense layer
         tf.keras.layers.Lambda(lambda x: tf.math.l2_normalize(x, axis=1))  # L2 normalize embeddings
     ])
+
+    input_images = Input(shape=(224, 224, 3), name='input_image')  # input layer for images
+    input_labels = Input(shape=(1,), name='input_label')  # input layer for labels
+    embeddings = base_model([input_images])  # output of network -> embeddings
+    labels_plus_embeddings = concatenate([input_labels, embeddings])  # concatenating the labels + embeddings
+
+    # Defining a model with inputs (images, labels) and outputs (labels_plus_embeddings)
+    model = Model(inputs=[input_images, input_labels],
+                  outputs=labels_plus_embeddings)
+
     return model

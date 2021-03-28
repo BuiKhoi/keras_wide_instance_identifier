@@ -4,9 +4,8 @@ from embedding_encoder.models import construct_model, vgg8_cosface, triplet_mode
 from embedding_encoder.ee_image_generator import EmbeddingDataGenerator
 from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, TerminateOnNaN
 from embedding_encoder.docs.keras_arcface.scheduler import CosineAnnealingScheduler
-import tensorflow_addons as tfa
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.models import load_model
+from embedding_encoder.losses import triplet_loss_adapted_from_tf as triplet_loss
 import tensorflow as tf
 
 
@@ -18,7 +17,12 @@ def prepare_datagen_custom_loss():
 
 
 def prepare_datagen_triplet():
-    train_gen = ImageDataGenerator(rotation_range=10, shear_range=0.3, zoom_range=0.3)
+    train_gen = ImageDataGenerator(
+        rotation_range=10,
+        shear_range=0.3,
+        zoom_range=0.3,
+        rescale=1.0/255.0
+    )
     train_gen = train_gen.flow_from_directory(
         TRAINING_FOLDER + 'train',
         target_size=(224, 224),
@@ -26,7 +30,12 @@ def prepare_datagen_triplet():
         class_mode='sparse'
     )
 
-    val_gen = ImageDataGenerator(rotation_range=10, shear_range=0.3, zoom_range=0.3)
+    val_gen = ImageDataGenerator(
+        rotation_range=10,
+        shear_range=0.3,
+        zoom_range=0.3,
+        rescale=1.0/255.0
+    )
     val_gen = val_gen.flow_from_directory(
         TRAINING_FOLDER + 'val',
         target_size=(224, 224),
@@ -53,11 +62,11 @@ def train_model():
         optimizer = SGD(lr=LEARNING_RATE, momentum=MOMENTUM)
 
     if LOSS_FUNC == 'triplet':
-        train_gen, val_gen = prepare_datagen_triplet()
+        train_gen, val_gen = prepare_datagen_custom_loss()
         model = triplet_model(NUM_FEATURES)
         model.compile(
             optimizer=optimizer,
-            loss=tfa.losses.TripletSemiHardLoss())
+            loss=triplet_loss)
     else:
         train_gen, val_gen = prepare_datagen_custom_loss()
         model = construct_model(train_gen.num_classes, NUM_FEATURES)

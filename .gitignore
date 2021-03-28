@@ -4,3 +4,4 @@ data/
 *.pyc
 *.h5
 *.hdf5
+*ipynp*
