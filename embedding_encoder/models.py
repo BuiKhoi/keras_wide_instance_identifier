@@ -1,10 +1,11 @@
 import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Dense, Conv2D, BatchNormalization, Activation
-from tensorflow.keras.layers import Input, MaxPooling2D, Dropout, Flatten, concatenate
+from tensorflow.keras.layers import Input, MaxPooling2D, Dropout, Flatten, Lambda
 from tensorflow.keras import regularizers
 from tensorflow.keras.applications.resnet50 import ResNet50
 from embedding_encoder.docs.keras_arcface.metrics import *
+from embedding_encoder.losses import triplet_loss
 
 weight_decay = 1e-4
 
@@ -62,9 +63,9 @@ def construct_model(classes, num_features):
     return Model([base_model.input, y], outp)
 
 
-def triplet_model(num_features):
+def triplet_model(input_shape, num_features):
     base_model = tf.keras.Sequential([
-        ResNet50(include_top=False, pooling='max', input_shape=(224, 224, 3), weights=None),
+        ResNet50(include_top=False, pooling='max', input_shape=input_shape, weights=None),
         tf.keras.layers.Dense(256, activation='relu'),
         Dropout(0.2),
         tf.keras.layers.Dense(128, activation='relu'),
@@ -73,13 +74,16 @@ def triplet_model(num_features):
         tf.keras.layers.Lambda(lambda x: tf.math.l2_normalize(x, axis=1))  # L2 normalize embeddings
     ])
 
-    input_images = Input(shape=(224, 224, 3), name='input_image')  # input layer for images
-    input_labels = Input(shape=(1,), name='input_label')  # input layer for labels
-    embeddings = base_model([input_images])  # output of network -> embeddings
-    labels_plus_embeddings = concatenate([input_labels, embeddings])  # concatenating the labels + embeddings
+    input_1 = Input(input_shape)
+    input_2 = Input(input_shape)
+    input_3 = Input(input_shape)
 
-    # Defining a model with inputs (images, labels) and outputs (labels_plus_embeddings)
-    model = Model(inputs=[input_images, input_labels],
-                  outputs=labels_plus_embeddings)
+    A = base_model(input_1)
+    P = base_model(input_2)
+    N = base_model(input_3)
+
+    loss = Lambda(triplet_loss)([A, P, N])
+    model = Model(inputs=[input_1, input_2, input_3], outputs=loss)
 
     return model
+

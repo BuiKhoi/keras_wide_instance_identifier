@@ -1,8 +1,8 @@
-LOSS_FUNC = 'cosface'
+LOSS_FUNC = 'triplet'
 OPTIMIZER = 'adam'
-LEARNING_RATE = 1e-3
+LEARNING_RATE = 1e-4
 MIN_LEARNING_RATE = 1e-8
-BATCH_SIZE = 32
+BATCH_SIZE = 8
 NUM_FEATURES = 128
 SCHEDULER = 'CosineAnnealing'
 MOMENTUM = 0.5
@@ -11,3 +11,4 @@ EPOCHS = 100
 CHECKPOINT_FOLDER = './embedding_encoder/checkpoints/'
 LOAD_MODEL = False
 LOAD_WEIGHT = './embedding_encoder/checkpoints/model_cos_36.hdf5'
+IMAGE_SHAPE = (224, 224, 3)
