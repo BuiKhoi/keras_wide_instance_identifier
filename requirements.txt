@@ -1,0 +1,7 @@
+tensorflow-gpu==2.2.0
+sklearn
+pandas
+matplotlib
+sklearn
+numpy
+opencv-python
